@@ -117,14 +117,18 @@ class _MyAppState extends State<MyApp> {
           clipBehavior: Clip.antiAlias,
           elevation: 4.0,
           child: Container(
-            padding: EdgeInsets.all(16.0),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
             ),
+            child: ClipOval( // Crop the square image into a circle
             child: Transform.rotate(
               angle: (direction * (math.pi / 180) * -1),
-              child: Image.asset('assets/compass.jpg'),
+              child: Image.asset(
+                'assets/compass.jpg',
+                fit: BoxFit.cover, // Ensures the image fills the circular crop
+              ),
+            ),
             ),
           ),
         );
