@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sightseeing_app/pages/main_page.dart';
 import 'package:sightseeing_app/pages/start_page.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class OptionsPage extends StatefulWidget {
   const OptionsPage({super.key});
@@ -13,7 +16,7 @@ class OptionsPage extends StatefulWidget {
 
 class _OptionsPageState extends State<OptionsPage> {
   final TextEditingController _locationController = TextEditingController();
-  double sliderValue = 0.0;
+  double sliderValue = 100.0;
   bool checkbox1 = false;
   bool checkbox2 = false;
   bool checkbox3 = false;
@@ -29,6 +32,24 @@ class _OptionsPageState extends State<OptionsPage> {
     super.dispose();
   }
 
+  Timer? _debounce;
+
+  void _onSliderChanged(double value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      setState(() {
+        sliderValue = value.roundToDouble();
+      });
+    });
+  }
+
+  String _formatAddress(Placemark place) {
+    final locality = place.locality?.isNotEmpty == true
+        ? place.locality
+        : place.subLocality ?? 'Unknown locality';
+    return '${place.street ?? 'Unknown street'}, $locality, ${place.country ?? 'Unknown country'}';
+  }
+
   Future<void> _updateCurrentLocationAndAddress() async {
     try {
       if (_currentAddress != null && _currentAddress!.isNotEmpty) {
@@ -37,43 +58,88 @@ class _OptionsPageState extends State<OptionsPage> {
       }
       _loadingAddress = true;
 
-      // Get the current position
-      final Position position = await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(accuracy: LocationAccuracy.high),
-      );
+      // Step 1: Request location permission
+      if (!await _requestLocationPermission()) return;
 
-      // Update state for the position
-      setState(() {
-        lat = position.latitude;
-        lng = position.longitude;
-      });
+      // Step 2: Fetch current location
+      final Position? position = await _fetchCurrentPosition();
+      if (position == null) return;
 
-      // Get the address from the coordinates
-      final List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      if (placemarks.isNotEmpty) {
-        final Placemark place = placemarks[0];
-        setState(() {
-          _currentAddress =
-              '${place.street}, ${place.locality?.isEmpty == true ? place.administrativeArea : place.locality}, ${place.country}';
-        });
-      } else {
-        setState(() {
-          _currentAddress = "Address not found";
-        });
-      }
-
-      _loadingAddress = false;
+      // Step 3: Reverse geocode to get address
+      await _fetchAddressFromCoordinates(position.latitude, position.longitude);
     } catch (e) {
-      debugPrint("Error fetching location or address: $e");
+      debugPrint("Error updating location or address: $e");
       setState(() {
         _currentAddress = "Error retrieving location.";
       });
     } finally {
       _loadingAddress = false;
+    }
+  }
+
+  // Request location permission
+  Future<bool> _requestLocationPermission() async {
+    PermissionStatus permissionStatus = await Permission.location.request();
+    if (permissionStatus != PermissionStatus.granted) {
+      setState(() {
+        _currentAddress = "Location permission denied.";
+      });
+      _loadingAddress = false;
+      return false;
+    }
+    return true;
+  }
+
+  // Fetch the current position
+  Future<Position?> _fetchCurrentPosition() async {
+    try {
+      final Position position = await Geolocator.getCurrentPosition(
+        locationSettings:
+            LocationSettings(accuracy: LocationAccuracy.bestForNavigation),
+      ).timeout(const Duration(seconds: 10), onTimeout: () {
+        throw TimeoutException('Fetching location timed out.');
+      });
+      setState(() {
+        lat = position.latitude;
+        lng = position.longitude;
+      });
+      return position;
+    } catch (e) {
+      debugPrint('Error fetching location: $e');
+      setState(() {
+        _currentAddress = "Error: Location retrieval failed.";
+      });
+      return null;
+    }
+  }
+
+  // Reverse geocode to fetch address
+  Future<void> _fetchAddressFromCoordinates(
+      double latitude, double longitude) async {
+    try {
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
+        latitude,
+        longitude,
+      ).timeout(const Duration(seconds: 5), onTimeout: () {
+        throw TimeoutException('Reverse geocoding timed out.');
+      });
+
+      if (placemarks.isNotEmpty) {
+        final Placemark place = placemarks[0];
+        setState(() {
+          _currentAddress =
+              _formatAddress(place); // Format the address for display
+        });
+      } else {
+        setState(() {
+          _currentAddress = "Address not found.";
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching address: $e');
+      setState(() {
+        _currentAddress = "Error: Address retrieval failed.";
+      });
     }
   }
 
@@ -100,7 +166,8 @@ class _OptionsPageState extends State<OptionsPage> {
                   child: TextField(
                     // Bind controller
                     controller: _locationController,
-                    keyboardType: TextInputType.streetAddress,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.done,
                     decoration: const InputDecoration(
                       labelText: 'Enter Location',
                       border: OutlineInputBorder(),
@@ -166,19 +233,14 @@ class _OptionsPageState extends State<OptionsPage> {
                   ],
                 ),
                 Slider(
-                  value: sliderValue,
-                  onChanged: (value) {
-                    setState(() {
-                      sliderValue = value;
-                    });
-                  },
-                  label: '${sliderValue.round().toString()} km',
-                  min: 0,
-                  max: 1000,
-                  divisions: 100,
-                  thumbColor: Colors.blue,
-                  activeColor: Colors.lightBlue,
-                )
+                    value: sliderValue,
+                    label: '${sliderValue.round().toString()} km',
+                    min: 0,
+                    max: 1000,
+                    divisions: 200,
+                    thumbColor: Colors.blue,
+                    activeColor: Colors.lightBlue,
+                    onChanged: _onSliderChanged)
               ],
             ),
             Column(
