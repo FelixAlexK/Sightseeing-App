@@ -1,6 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:sightseeing_app/pages/options_page.dart';
+import 'package:sightseeing_app/pages/history_page.dart';
+import 'package:sightseeing_app/models/place.dart';
 
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
@@ -110,7 +111,13 @@ class StartPage extends StatelessWidget {
                     children: [
                       Expanded(
                           child: ElevatedButton(
-                              onPressed: () => print('History'),
+                              onPressed: () => {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                HistoryPage(places: places)))
+                                  },
                               style: TextButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 side: BorderSide(
@@ -141,3 +148,27 @@ class StartPage extends StatelessWidget {
     );
   }
 }
+
+List<Place> places = [
+  Place(
+    name: "Eiffel Tower",
+    description: "An iconic symbol of Paris, France.",
+    imageUrl: "",
+    date: "Visited on: 2024-12-01",
+    cord: "48.8584° N, 2.2945° E",
+  ),
+  Place(
+    name: "Great Wall of China",
+    description: "A historic wall spanning across northern China.",
+    imageUrl: "",
+    date: "Visited on: 2023-10-15",
+    cord: "40.4319° N, 116.5704° E",
+  ),
+  Place(
+    name: "Taj Mahal",
+    description: "A magnificent mausoleum in India.",
+    imageUrl: 'compass.jpg',
+    date: "Visited on: 2022-05-10",
+    cord: "27.1751° N, 78.0421° E",
+  ),
+];
