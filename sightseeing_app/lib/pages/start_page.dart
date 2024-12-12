@@ -24,7 +24,7 @@ class StartPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Sightseeing App',
+                  'SightVenture',
                   style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
