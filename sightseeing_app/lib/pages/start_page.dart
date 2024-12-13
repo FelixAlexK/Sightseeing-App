@@ -153,22 +153,22 @@ List<Place> places = [
   Place(
     name: "Eiffel Tower",
     description: "An iconic symbol of Paris, France.",
-    imageUrl: "",
-    date: "Visited on: 2024-12-01",
+    date: DateTime(2024, 12, 25),
     cord: "48.8584° N, 2.2945° E",
+    beenHere: false,
   ),
   Place(
     name: "Great Wall of China",
     description: "A historic wall spanning across northern China.",
-    imageUrl: "",
-    date: "Visited on: 2023-10-15",
+    date: DateTime(2024, 12, 25),
     cord: "40.4319° N, 116.5704° E",
+    beenHere: false,
   ),
   Place(
     name: "Taj Mahal",
     description: "A magnificent mausoleum in India.",
-    imageUrl: 'compass.jpg',
-    date: "Visited on: 2022-05-10",
+    date: DateTime(2024, 12, 25),
     cord: "27.1751° N, 78.0421° E",
+    beenHere: false,
   ),
 ];

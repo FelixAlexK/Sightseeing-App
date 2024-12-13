@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/place.dart';
+import 'package:intl/intl.dart';
 
 class PlaceDetailPage extends StatelessWidget {
   final Place place;
 
-  PlaceDetailPage({required this.place});
+  const PlaceDetailPage({super.key, required this.place});
 
   @override
   Widget build(BuildContext context) {
@@ -12,32 +13,85 @@ class PlaceDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(place.name),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          Image.asset('assets/' + place.imageUrl,
-              height: 200, width: double.infinity, fit: BoxFit.cover),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          // Background image
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(
+                    'assets/map.jpg'), // Replace with your background image path
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          // Foreground content
+          SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Description
-                Text(
-                  place.description,
-                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w500),
+                Image.asset(
+                  'assets/${place.imageUrl}',
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
                 ),
-                SizedBox(height: 16.0),
-                // Date
-                Text(
-                  "Date: ${place.date}",
-                  style: TextStyle(fontSize: 16.0, color: Colors.grey[700]),
-                ),
-                SizedBox(height: 8.0),
-                // Coordinates
-                Text(
-                  "Coordinates: ${place.cord}",
-                  style: TextStyle(fontSize: 16.0, color: Colors.grey[700]),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Description
+                      Text(
+                        place.description,
+                        style: TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white, // White text for contrast
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1.0, 1.0),
+                              blurRadius: 3.0,
+                              color:
+                                  Colors.black, // Shadow for better visibility
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      // Date
+                      Text(
+                        "Date: ${DateFormat('EEEE, MMMM d, yyyy').format(place.date)}",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1.0, 1.0),
+                              blurRadius: 3.0,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 8.0),
+                      // Coordinates
+                      Text(
+                        "Coordinates: ${place.cord}",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1.0, 1.0),
+                              blurRadius: 3.0,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
