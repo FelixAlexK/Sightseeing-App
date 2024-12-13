@@ -3,12 +3,14 @@ class Place {
   final String description;
   final String imageUrl;
   final String cord;
-  final String date;
+  final DateTime date;
+  final bool beenHere;
 
   Place(
       {required this.name,
       required this.description,
-      required this.imageUrl,
+      this.imageUrl = "nophoto.jpg",
       required this.cord,
-      required this.date});
+      required this.date,
+      required this.beenHere});
 }
