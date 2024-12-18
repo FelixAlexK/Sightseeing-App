@@ -233,14 +233,19 @@ class _OptionsPageState extends State<OptionsPage> {
                   ],
                 ),
                 Slider(
-                    value: sliderValue,
-                    label: '${sliderValue.round().toString()} km',
-                    min: 0,
-                    max: 1000,
-                    divisions: 200,
-                    thumbColor: Colors.blue,
-                    activeColor: Colors.lightBlue,
-                    onChanged: _onSliderChanged)
+                  value: sliderValue,
+                  label: '${sliderValue.round().toString()} km',
+                  min: 0,
+                  max: 1000,
+                  divisions: 200,
+                  thumbColor: Colors.blue,
+                  activeColor: Colors.lightBlue,
+                  onChangeEnd: _onSliderChanged,
+                  onChanged: (value) {
+                    setState(() {
+                    sliderValue = value;
+                    });
+                  })
               ],
             ),
             Column(
