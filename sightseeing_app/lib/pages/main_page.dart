@@ -32,6 +32,12 @@ class _MainPageState extends State<MainPage> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Flutter Compass'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
         body: Builder(builder: (context) {
           if (_hasPermissions) {
