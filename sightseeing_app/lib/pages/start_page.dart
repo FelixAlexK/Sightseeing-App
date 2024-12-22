@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sightseeing_app/pages/options_page.dart';
 import 'package:sightseeing_app/pages/history_page.dart';
 import 'package:sightseeing_app/models/place.dart';
+import 'package:sightseeing_app/pages/photo_page.dart';
 
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
@@ -83,7 +84,13 @@ class StartPage extends StatelessWidget {
                           child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 24),
                         child: ElevatedButton(
-                            onPressed: () => print('Resume'),
+                            onPressed: () => {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PhotoCaptureApp(),
+                                      ))
+                                },
                             style: TextButton.styleFrom(
                               backgroundColor: Colors.white,
                               side: BorderSide(
@@ -115,8 +122,9 @@ class StartPage extends StatelessWidget {
                                     Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (context) =>
-                                                HistoryPage(places: places)))
+                                            builder: (context) => HistoryPage(
+                                                  places: places,
+                                                )))
                                   },
                               style: TextButton.styleFrom(
                                 backgroundColor: Colors.white,
