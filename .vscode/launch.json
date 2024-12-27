@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "sightseeing_app",
+            "cwd": "sightseeing_app",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "sightseeing_app (profile mode)",
+            "cwd": "sightseeing_app",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "sightseeing_app (release mode)",
+            "cwd": "sightseeing_app",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
