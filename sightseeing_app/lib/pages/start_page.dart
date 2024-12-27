@@ -123,7 +123,7 @@ class StartPage extends StatelessWidget {
                                         context,
                                         MaterialPageRoute(
                                             builder: (context) => HistoryPage(
-                                                  places: places,
+                                                  places: placesBeen,
                                                 )))
                                   },
                               style: TextButton.styleFrom(

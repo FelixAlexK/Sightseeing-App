@@ -2,8 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
-import '../models/place.dart';
+import 'package:sightseeing_app/models/place.dart';
 
 class PhotoCaptureApp extends StatefulWidget {
   @override
@@ -12,17 +11,19 @@ class PhotoCaptureApp extends StatefulWidget {
 
 class _PhotoCaptureAppState extends State<PhotoCaptureApp> {
   File? _storedImage;
+  String? _fileName;
 
   // Function to capture a photo
   Future<void> _takePhoto() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
     if (pickedFile == null) return;
 
     final appDir = await getApplicationDocumentsDirectory();
-    final fileName = DateTime.now().toIso8601String(); // Unique filename
+    _fileName = DateTime.now().toIso8601String(); // Unique filename
     final savedImage =
-        await File(pickedFile.path).copy('${appDir.path}/$fileName.jpg');
+        await File(pickedFile.path).copy('${appDir.path}/$_fileName.jpg');
 
     setState(() {
       _storedImage = savedImage;
@@ -30,110 +31,74 @@ class _PhotoCaptureAppState extends State<PhotoCaptureApp> {
   }
 
   // Function to display the image
-  Future<void> _loadPhoto() async {
+  Future<void> _done() async {
+    if (_fileName == null) {
+      // Handle case where fileName is null
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No photo taken yet.')),
+      );
+      final tempPlace = Place(
+          name: places[at].name,
+          description: places[at].description,
+          date: DateTime.now(),
+          cord: places[at].cord,
+          imageUrl: places[at].imageUrl,
+          diff: currentDiff);
+      placesBeen.add(tempPlace);
+      return;
+    }
+
     final appDir = await getApplicationDocumentsDirectory();
-    final storedImagePath =
-        '${appDir.path}/image.jpg'; // Update to dynamic logic if needed
+    final storedImagePath = '${appDir.path}/$_fileName.jpg';
 
     final storedImage = File(storedImagePath);
+
     if (await storedImage.exists()) {
       setState(() {
         _storedImage = storedImage;
+        final tempPlace = Place(
+            name: places[at].name,
+            description: places[at].description,
+            date: DateTime.now(),
+            cord: places[at].cord,
+            imageUrl: "$_fileName.jpg",
+            diff: currentDiff);
+        placesBeen.add(tempPlace);
       });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No saved image found.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(places[at].name),
-      ),
-      body: Stack(
-        children: [
-          // Background image
-          Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/map.jpg'),
-                fit: BoxFit.cover,
-              ),
+      appBar: AppBar(title: Text('Photo Capture')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _storedImage != null
+                ? Image.file(
+                    _storedImage!,
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  )
+                : Text('No image captured'),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _takePhoto,
+              child: Text('Take photo'),
             ),
-          ),
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Image.asset(
-                  'assets/${places[at].imageUrl}',
-                  height: 200,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        places[at].description,
-                        style: TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(1.0, 1.0),
-                              blurRadius: 3.0,
-                              color: Colors.black,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 8.0),
-                      Text(
-                        "Coordinates: ${places[at].cord}",
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              offset: Offset(1.0, 1.0),
-                              blurRadius: 3.0,
-                              color: Colors.black,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _storedImage != null
-                        ? Image.file(
-                            _storedImage!,
-                            width: 200,
-                            height: 200,
-                            fit: BoxFit.cover,
-                          )
-                        : Text('No image captured'),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _takePhoto,
-                      child: Text('Take Photo'),
-                    ),
-                    ElevatedButton(
-                      onPressed: _loadPhoto,
-                      child: Text('Load Photo'),
-                    ),
-                  ],
-                ),
-              ],
+            ElevatedButton(
+              onPressed: _done,
+              child: Text('Done'),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

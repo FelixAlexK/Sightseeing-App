@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/place.dart';
 import 'package:intl/intl.dart';
+import '../models/place.dart';
+import 'start_page.dart'; // Import your StartPage
 
 class PlaceDetailPage extends StatelessWidget {
   final Place place;
@@ -90,9 +91,42 @@ class PlaceDetailPage extends StatelessWidget {
                           ],
                         ),
                       ),
+                      SizedBox(height: 8.0),
+                      // Coordinates
+                      Text(
+                        "Difficylty: ${place.diff == 2 ? 'hard' : 'easy'}",
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              offset: Offset(1.0, 1.0),
+                              blurRadius: 3.0,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                SizedBox(height: 16.0), // Add spacing before the button
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              StartPage(), // Navigate to StartPage
+                        ),
+                        (route) => false, // Remove all previous routes
+                      );
+                    },
+                    child: Text("Back to Start Page"),
+                  ),
+                ),
+                SizedBox(height: 16.0), // Add spacing after the button
               ],
             ),
           ),
