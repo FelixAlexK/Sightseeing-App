@@ -5,6 +5,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sightseeing_app/models/place.dart';
 
 class PhotoCaptureApp extends StatefulWidget {
+  const PhotoCaptureApp({super.key});
+
   @override
   _PhotoCaptureAppState createState() => _PhotoCaptureAppState();
 }
