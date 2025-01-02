@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../models/place.dart';
+// TODO: maxDistance from options_page.dart same for _userPosition
+final double maxDistance = 100000000000; // 10000 km
 
 /// Parses a coordinate string in the format "48.8584° N, 2.2945° E".
 /// Returns a [LatLng] object with latitude and longitude as doubles.
@@ -43,29 +45,75 @@ class _MainPageState extends State<MainPage> {
   bool _hasPermissions = false;
   final List<double> _headingBuffer = [];
   final int _bufferSize = 5;
-  Position? _userPosition;
+  Position? _userPosition; // TODO: _userPosition from options_page.dart
   double? _distanceToDestination;
    // Slott Oerebro 59.270998916 15.20916583
   //final double _destinationLatitude = 59.270998916; 
   //final double _destinationLongitude = 15.20916583;
-  Place? _selectedPlace;
+  double? _destinationLatitude;
+  double? _destinationLongitude;
  
 
   @override
   void initState() {
     super.initState();
-    _selectRandomPlace();
-    _fetchPermissionStatus();
     _getUserLocation();
+    _selectRandomPlace;
+    //_selectRandomPlace(maxDistance);
+    _fetchPermissionStatus();
   }
 
   void _selectRandomPlace() {
     // Select a random place from the list
     final random = Random();
     setState(() {
-      _selectedPlace = places[random.nextInt(places.length)];
+      Place selectedPlace = places[random.nextInt(places.length)];
+      final cords = parseCoordinates(selectedPlace.cord);
+      _destinationLatitude = cords['latitude']!;
+      _destinationLongitude = cords['longitude']!;
     });
   }
+/* 
+void _selectRandomPlace(double maxDistance) {
+  if (_userPosition == null) {
+    // Handle case where user location is unavailable
+    print('User location not available.');
+    return;
+  }
+
+  // Parse and filter places within the specified distance
+  final filteredPlaces = places.where((place) {
+    final cords = parseCoordinates(place.cord);
+    final placeLat = cords['latitude']!;
+    final placeLon = cords['longitude']!;
+    final distance = Geolocator.distanceBetween(
+      _userPosition!.latitude,
+      _userPosition!.longitude,
+      placeLat,
+      placeLon,
+    );
+    return distance <= maxDistance;
+  }).toList();
+  
+
+
+  if (filteredPlaces.isEmpty) {
+    // No places within the specified distance
+    print('No places found within $maxDistance meters.');
+    return;
+  }
+
+  // Select a random place from the filtered list
+  final random = Random();
+  setState(() {
+    Place selectedPlace = filteredPlaces[random.nextInt(filteredPlaces.length)];
+    final cords = parseCoordinates(selectedPlace.cord);
+    _destinationLatitude = cords['latitude']!;
+    _destinationLongitude = cords['longitude']!;
+
+  });
+}
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -212,15 +260,11 @@ class _MainPageState extends State<MainPage> {
   double? _calculateAngleToDestination(double currentHeading) {
     if (_userPosition == null) return null;
 
-    final cords = parseCoordinates(_selectedPlace!.cord);
-    final _destinationLatitude = cords['latitude']!;
-    final _destinationLongitude = cords['longitude']!;
-
     // Destination and user coordinates
     final userLat = _userPosition!.latitude * (math.pi / 180);
     final userLon = _userPosition!.longitude * (math.pi / 180);
-    final destLat = _destinationLatitude * (math.pi / 180);
-    final destLon = _destinationLongitude * (math.pi / 180);
+    final destLat = _destinationLatitude! * (math.pi / 180);
+    final destLon = _destinationLongitude! * (math.pi / 180);
 
     // Calculate bearing to destination
     final deltaLon = destLon - userLon;
@@ -235,16 +279,12 @@ class _MainPageState extends State<MainPage> {
   void _updateDistanceAndAngle(double currentHeading) {
     if (_userPosition == null) return;
 
-    final cords = parseCoordinates(_selectedPlace!.cord);
-    final _destinationLatitude = cords['latitude']!;
-    final _destinationLongitude = cords['longitude']!;
-
     // Calculate distance
     final distance = Geolocator.distanceBetween(
       _userPosition!.latitude,
       _userPosition!.longitude,
-      _destinationLatitude,
-      _destinationLongitude,
+      _destinationLatitude!,
+      _destinationLongitude!,
     );
 
     // Update state only if the distance has changed significantly
@@ -292,6 +332,7 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  // TODO: remove _getUserLocation once _userPosition is available from options_page.dart
   void _getUserLocation() async {
     try {
       final position = await Geolocator.getCurrentPosition();
