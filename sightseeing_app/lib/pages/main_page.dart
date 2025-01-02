@@ -48,7 +48,8 @@ class _MainPageState extends State<MainPage> {
   Place? _selectedPlace;
 
   // Maximum distance in meters to consider a place as nearby
-  final int maxDistance = 1400000; //TODO: from options_page.dart
+  //final int maxDistance = 1500000; //TODO: from options_page.dart
+  final int maxDistance = 5000000000; //TODO: from options_page.dart
 
   StreamSubscription<Position>? _positionStreamSubscription;
 
@@ -57,6 +58,7 @@ class _MainPageState extends State<MainPage> {
     super.initState();
     _fetchPermissionStatus();
     _startLocationUpdates(); // Start continuous location updates
+    _selectRandomPlace(); // Select a place once when the widget initializes
   }
 
   @override
@@ -71,7 +73,7 @@ class _MainPageState extends State<MainPage> {
         setState(() {
           _userPosition = position; // Continuously update _userPosition
         });
-        _selectRandomPlace(); // Update selected place when location changes
+        if (_selectedPlace == null) _selectRandomPlace(); // Update selected place when location changes
       }
     });
   }
