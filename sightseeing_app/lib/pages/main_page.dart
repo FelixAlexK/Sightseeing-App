@@ -47,6 +47,9 @@ class _MainPageState extends State<MainPage> {
   double? _distanceToDestination;
   Place? _selectedPlace;
 
+  // Maximum distance in meters to consider a place as nearby
+  final int maxDistance = 1500000; //TODO: from options
+
   StreamSubscription<Position>? _positionStreamSubscription;
 
   @override
@@ -79,7 +82,7 @@ class _MainPageState extends State<MainPage> {
       return;
     }
 
-    // Filter places within 10 km of the user's current location
+    // Filter places within maxDistance of the user's current location
     final nearbyPlaces = places.where((place) {
       final cords = parseCoordinates(place.cord);
       final placeLat = cords['latitude']!;
@@ -90,11 +93,11 @@ class _MainPageState extends State<MainPage> {
         placeLat,
         placeLon,
       );
-      return distance <= 10000; // 10 km radius
+      return distance <= maxDistance;
     }).toList();
 
     if (nearbyPlaces.isEmpty) {
-      print('No places found within 10 km.');
+      print('No nearby places found within ${maxDistance / 1000} km.');
       setState(() {
         _selectedPlace = null; // No valid place available
       });
@@ -138,8 +141,8 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildCompass() {
     if (_selectedPlace == null) {
-      return const Center(
-        child: Text('No nearby places found within 10 km.'),
+      return Center(
+        child: Text('No nearby places found within ${maxDistance / 1000} km.'),
       );
     }
 
