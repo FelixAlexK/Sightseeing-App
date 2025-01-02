@@ -48,7 +48,7 @@ class _MainPageState extends State<MainPage> {
   Place? _selectedPlace;
 
   // Maximum distance in meters to consider a place as nearby
-  final int maxDistance = 1500000; //TODO: from options
+  final int maxDistance = 1400000; //TODO: from options_page.dart
 
   StreamSubscription<Position>? _positionStreamSubscription;
 
@@ -140,81 +140,87 @@ class _MainPageState extends State<MainPage> {
   }
 
   Widget _buildCompass() {
-    if (_selectedPlace == null) {
-      return Center(
-        child: Text('No nearby places found within ${maxDistance / 1000} km.'),
-      );
-    }
+  if (_userPosition == null || !_hasPermissions) {
+    return const Center(
+      child: CircularProgressIndicator(), // Show a loading spinner until the user's position is available
+    );
+  }
 
-    return StreamBuilder<CompassEvent>(
-      stream: FlutterCompass.events,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(
-            child: Text('Error reading heading: ${snapshot.error}'),
-          );
-        }
+  if (_selectedPlace == null) {
+    return Center(
+      child: Text('No nearby places found within  ${maxDistance / 1000} km.'),
+    );
+  }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
+  return StreamBuilder<CompassEvent>(
+    stream: FlutterCompass.events,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return Center(
+          child: Text('Error reading heading: ${snapshot.error}'),
+        );
+      }
 
-        double? heading = snapshot.data?.heading;
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(
+          child: CircularProgressIndicator(), // Spinner while compass data is loading
+        );
+      }
 
-        // Handle devices without sensors
-        if (heading == null) {
-          return const Center(
-            child: Text('Device does not have compass sensors.')
-          );
-        }
+      double? heading = snapshot.data?.heading;
 
-        _headingBuffer.add(heading);
-        if (_headingBuffer.length > _bufferSize) {
-          _headingBuffer.removeAt(0);
-        }
-        final smoothedHeading = _headingBuffer.reduce((a, b) => a + b) / _headingBuffer.length;
+      if (heading == null) {
+        return const Center(
+          child: Text("Device does not have compass sensors."),
+        );
+      }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _updateDistanceAndAngle(smoothedHeading);
-        });
+      _headingBuffer.add(heading);
+      if (_headingBuffer.length > _bufferSize) {
+        _headingBuffer.removeAt(0);
+      }
+      final smoothedHeading = _headingBuffer.reduce((a, b) => a + b) / _headingBuffer.length;
 
-        final angleToDestination = _calculateAngleToDestination(smoothedHeading);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateDistanceAndAngle(smoothedHeading);
+      });
 
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Material(
-              shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              elevation: 4.0,
-              child: Container(
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(shape: BoxShape.circle),
-                child: ClipOval(
-                  child: Transform.rotate(
-                    angle: (angleToDestination ?? 0) * (math.pi / 180) * -1,
-                    child: Image.asset(
-                      'assets/arrow.png',
-                      fit: BoxFit.cover,
-                    ),
+      final angleToDestination = _calculateAngleToDestination(smoothedHeading);
+
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Material(
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            elevation: 4.0,
+            child: Container(
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: ClipOval(
+                child: Transform.rotate(
+                  angle: (angleToDestination ?? 0) * (math.pi / 180) * -1,
+                  child: Image.asset(
+                    'assets/arrow.png',
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              angleToDestination != null
-                  ? 'Direction to Destination: ${angleToDestination.toStringAsFixed(1)}°'
-                  : 'Calculating...',
-              style: const TextStyle(fontSize: 16),
-            ),
-          ],
-        );
-      },
-    );
-  }
+          ),
+          const SizedBox(height: 16),
+          Text(
+            angleToDestination != null
+                ? 'Direction to Destination: ${angleToDestination.toStringAsFixed(1)}°'
+                : 'Calculating...',
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   Widget _buildDistanceInfo() {
     if (_distanceToDestination == null) {
