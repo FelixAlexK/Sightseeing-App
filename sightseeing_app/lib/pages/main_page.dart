@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
@@ -6,6 +7,30 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../models/place.dart';
+
+/// Parses a coordinate string in the format "48.8584° N, 2.2945° E".
+/// Returns a [LatLng] object with latitude and longitude as doubles.
+Map<String, double> parseCoordinates(String cord) {
+  final parts = cord.split(','); // Split into ["48.8584° N", " 2.2945° E"]
+  
+  // Extract latitude
+  final latPart = parts[0].trim();
+  final latValue = double.parse(latPart.split('°')[0]);
+  final latDirection = latPart.split(' ')[1];
+  final latitude = latDirection == 'S' ? -latValue : latValue;
+
+  // Extract longitude
+  final lonPart = parts[1].trim();
+  final lonValue = double.parse(lonPart.split('°')[0]);
+  final lonDirection = lonPart.split(' ')[1];
+  final longitude = lonDirection == 'W' ? -lonValue : lonValue;
+
+  return {
+    'latitude': latitude,
+    'longitude': longitude,
+  };
+}
+
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -21,15 +46,25 @@ class _MainPageState extends State<MainPage> {
   Position? _userPosition;
   double? _distanceToDestination;
    // Slott Oerebro 59.270998916 15.20916583
-  final double _destinationLatitude = 59.270998916; 
-  final double _destinationLongitude = 15.20916583;
+  //final double _destinationLatitude = 59.270998916; 
+  //final double _destinationLongitude = 15.20916583;
+  Place? _selectedPlace;
  
 
   @override
   void initState() {
     super.initState();
+    _selectRandomPlace();
     _fetchPermissionStatus();
     _getUserLocation();
+  }
+
+  void _selectRandomPlace() {
+    // Select a random place from the list
+    final random = Random();
+    setState(() {
+      _selectedPlace = places[random.nextInt(places.length)];
+    });
   }
 
   @override
@@ -177,6 +212,10 @@ class _MainPageState extends State<MainPage> {
   double? _calculateAngleToDestination(double currentHeading) {
     if (_userPosition == null) return null;
 
+    final cords = parseCoordinates(_selectedPlace!.cord);
+    final _destinationLatitude = cords['latitude']!;
+    final _destinationLongitude = cords['longitude']!;
+
     // Destination and user coordinates
     final userLat = _userPosition!.latitude * (math.pi / 180);
     final userLon = _userPosition!.longitude * (math.pi / 180);
@@ -195,6 +234,10 @@ class _MainPageState extends State<MainPage> {
 
   void _updateDistanceAndAngle(double currentHeading) {
     if (_userPosition == null) return;
+
+    final cords = parseCoordinates(_selectedPlace!.cord);
+    final _destinationLatitude = cords['latitude']!;
+    final _destinationLongitude = cords['longitude']!;
 
     // Calculate distance
     final distance = Geolocator.distanceBetween(
