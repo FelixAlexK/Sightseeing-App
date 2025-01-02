@@ -5,6 +5,8 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../models/place.dart';
+
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -16,7 +18,6 @@ class _MainPageState extends State<MainPage> {
   bool _hasPermissions = false;
   final List<double> _headingBuffer = [];
   final int _bufferSize = 5;
-  double? _bearing;
   Position? _userPosition;
   double? _distanceToDestination;
    // Slott Oerebro 59.270998916 15.20916583
@@ -110,7 +111,7 @@ class _MainPageState extends State<MainPage> {
                   child: Transform.rotate(
                     angle: (angleToDestination ?? 0) * (math.pi / 180) * -1,
                     child: Image.asset(
-                      'assets/compass.jpg',
+                      'assets/arrow.png',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -134,19 +135,17 @@ class _MainPageState extends State<MainPage> {
     if (_distanceToDestination == null) {
       return const Padding(
         padding: EdgeInsets.all(16.0),
-        child: Text('Calculating distance and time...'),
+        child: Text('Calculating distance...'),
       );
     }
 
     final distanceInKm = (_distanceToDestination! / 1000).toStringAsFixed(2);
-    final estimatedTime = (_distanceToDestination! / 80).toStringAsFixed(1); // Assume 80 km/h
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
           Text('Distance to Destination: $distanceInKm km'),
-          Text('Estimated Time: $estimatedTime hours (by car)'),
         ],
       ),
     );
