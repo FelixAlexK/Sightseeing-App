@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:math';
 
@@ -9,7 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../models/place.dart';
 
 /// Parses a coordinate string in the format "48.8584° N, 2.2945° E".
-/// Returns a [LatLng] object with latitude and longitude as doubles.
+/// Returns a map with latitude and longitude as doubles.
 Map<String, double> parseCoordinates(String cord) {
   final parts = cord.split(','); // Split into ["48.8584° N", " 2.2945° E"]
   
@@ -31,7 +32,6 @@ Map<String, double> parseCoordinates(String cord) {
   };
 }
 
-
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
@@ -45,18 +45,32 @@ class _MainPageState extends State<MainPage> {
   final int _bufferSize = 5;
   Position? _userPosition;
   double? _distanceToDestination;
-   // Slott Oerebro 59.270998916 15.20916583
-  //final double _destinationLatitude = 59.270998916; 
-  //final double _destinationLongitude = 15.20916583;
   Place? _selectedPlace;
- 
+
+  StreamSubscription<Position>? _positionStreamSubscription;
 
   @override
   void initState() {
     super.initState();
-    _selectRandomPlace();
     _fetchPermissionStatus();
-    _getUserLocation();
+    _startLocationUpdates(); // Start continuous location updates
+    _selectRandomPlace();
+  }
+
+  @override
+  void dispose() {
+    _positionStreamSubscription?.cancel(); // Cancel stream subscription to avoid memory leaks
+    super.dispose();
+  }
+
+  void _startLocationUpdates() {
+    _positionStreamSubscription = Geolocator.getPositionStream().listen((position) {
+      if (mounted) {
+        setState(() {
+          _userPosition = position; // Continuously update _userPosition
+        });
+      }
+    });
   }
 
   void _selectRandomPlace() {
@@ -114,18 +128,16 @@ class _MainPageState extends State<MainPage> {
         // Handle devices without sensors
         if (heading == null) {
           return const Center(
-            child: Text("Device does not have compass sensors."),
+            child: Text('Device does not have compass sensors.')
           );
         }
 
-        // Smooth heading using a moving average
         _headingBuffer.add(heading);
         if (_headingBuffer.length > _bufferSize) {
           _headingBuffer.removeAt(0);
         }
         final smoothedHeading = _headingBuffer.reduce((a, b) => a + b) / _headingBuffer.length;
 
-        // Calculate rotation angle to destination without directly using setState()
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _updateDistanceAndAngle(smoothedHeading);
         });
@@ -210,41 +222,40 @@ class _MainPageState extends State<MainPage> {
   }
 
   double? _calculateAngleToDestination(double currentHeading) {
-    if (_userPosition == null) return null;
+    if (_userPosition == null || _selectedPlace == null) return null;
 
     final cords = parseCoordinates(_selectedPlace!.cord);
-    final _destinationLatitude = cords['latitude']!;
-    final _destinationLongitude = cords['longitude']!;
+    final destLat = cords['latitude']!;
+    final destLon = cords['longitude']!;
 
     // Destination and user coordinates
     final userLat = _userPosition!.latitude * (math.pi / 180);
     final userLon = _userPosition!.longitude * (math.pi / 180);
-    final destLat = _destinationLatitude * (math.pi / 180);
-    final destLon = _destinationLongitude * (math.pi / 180);
+    final destinationLat = destLat * (math.pi / 180);
+    final destinationLon = destLon * (math.pi / 180);
 
-    // Calculate bearing to destination
-    final deltaLon = destLon - userLon;
-    final y = math.sin(deltaLon) * math.cos(destLat);
-    final x = math.cos(userLat) * math.sin(destLat) -
-        math.sin(userLat) * math.cos(destLat) * math.cos(deltaLon);
+    final deltaLon = destinationLon - userLon;
+    final y = math.sin(deltaLon) * math.cos(destinationLat);
+    final x = math.cos(userLat) * math.sin(destinationLat) -
+        math.sin(userLat) * math.cos(destinationLat) * math.cos(deltaLon);
     final bearing = (math.atan2(y, x) * (180 / math.pi) + 360) % 360;
 
     return (bearing - currentHeading + 360) % 360;
   }
 
   void _updateDistanceAndAngle(double currentHeading) {
-    if (_userPosition == null) return;
+    if (_userPosition == null || _selectedPlace == null) return;
 
     final cords = parseCoordinates(_selectedPlace!.cord);
-    final _destinationLatitude = cords['latitude']!;
-    final _destinationLongitude = cords['longitude']!;
+    final destLat = cords['latitude']!;
+    final destLon = cords['longitude']!;
 
     // Calculate distance
     final distance = Geolocator.distanceBetween(
       _userPosition!.latitude,
       _userPosition!.longitude,
-      _destinationLatitude,
-      _destinationLongitude,
+      destLat,
+      destLon,
     );
 
     // Update state only if the distance has changed significantly
@@ -253,7 +264,6 @@ class _MainPageState extends State<MainPage> {
         _distanceToDestination = distance;
       });
 
-      // Check proximity to the destination
       _checkProximityToDestination();
     }
   }
@@ -290,18 +300,5 @@ class _MainPageState extends State<MainPage> {
         setState(() => _hasPermissions = status == PermissionStatus.granted);
       }
     });
-  }
-
-  void _getUserLocation() async {
-    try {
-      final position = await Geolocator.getCurrentPosition();
-      if (mounted) {
-        setState(() {
-          _userPosition = position;
-        });
-      }
-    } catch (e) {
-      print('Error getting location: $e');
-    }
   }
 }
