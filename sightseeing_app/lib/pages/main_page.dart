@@ -54,7 +54,6 @@ class _MainPageState extends State<MainPage> {
     super.initState();
     _fetchPermissionStatus();
     _startLocationUpdates(); // Start continuous location updates
-    _selectRandomPlace();
   }
 
   @override
@@ -69,16 +68,46 @@ class _MainPageState extends State<MainPage> {
         setState(() {
           _userPosition = position; // Continuously update _userPosition
         });
+        _selectRandomPlace(); // Update selected place when location changes
       }
     });
   }
 
   void _selectRandomPlace() {
-    // Select a random place from the list
+    if (_userPosition == null) {
+      print('User position is not available.');
+      return;
+    }
+
+    // Filter places within 10 km of the user's current location
+    final nearbyPlaces = places.where((place) {
+      final cords = parseCoordinates(place.cord);
+      final placeLat = cords['latitude']!;
+      final placeLon = cords['longitude']!;
+      final distance = Geolocator.distanceBetween(
+        _userPosition!.latitude,
+        _userPosition!.longitude,
+        placeLat,
+        placeLon,
+      );
+      return distance <= 10000; // 10 km radius
+    }).toList();
+
+    if (nearbyPlaces.isEmpty) {
+      print('No places found within 10 km.');
+      setState(() {
+        _selectedPlace = null; // No valid place available
+      });
+      return;
+    }
+
+    // Select a random place from the filtered list
     final random = Random();
     setState(() {
-      _selectedPlace = places[random.nextInt(places.length)];
+      _selectedPlace = nearbyPlaces[random.nextInt(nearbyPlaces.length)];
     });
+
+    print('Selected place: ${_selectedPlace?.name}');
   }
 
   @override
@@ -108,6 +137,12 @@ class _MainPageState extends State<MainPage> {
   }
 
   Widget _buildCompass() {
+    if (_selectedPlace == null) {
+      return const Center(
+        child: Text('No nearby places found within 10 km.'),
+      );
+    }
+
     return StreamBuilder<CompassEvent>(
       stream: FlutterCompass.events,
       builder: (context, snapshot) {
