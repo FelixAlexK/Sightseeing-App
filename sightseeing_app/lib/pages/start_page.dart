@@ -3,9 +3,16 @@ import 'package:sightseeing_app/pages/options_page.dart';
 import 'package:sightseeing_app/pages/history_page.dart';
 import 'package:sightseeing_app/models/place.dart';
 import 'package:sightseeing_app/pages/main_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
+
+  Future<bool> _hasStoredPlace() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.containsKey('selectedPlace');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,35 +88,52 @@ class StartPage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       Expanded(
-                          child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: ElevatedButton(
-                            onPressed: () => {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>  MainPage(useStoredPlace: true),
-                                      ))
-                                },
-                            style: TextButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              side: BorderSide(
-                                  color: Colors.blue,
-                                  width: 2,
-                                  strokeAlign: BorderSide.strokeAlignInside),
-                              elevation: 8,
-                              padding:
-                                  EdgeInsetsDirectional.symmetric(vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              disabledBackgroundColor: Colors.grey,
-                            ),
-                            child: Text(
-                              'Resume',
-                              style:
-                                  TextStyle(color: Colors.blue, fontSize: 24),
-                            )),
-                      ))
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: FutureBuilder<bool>(
+                            future: _hasStoredPlace(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return CircularProgressIndicator();
+                              } else if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              } else {
+                                final hasStoredPlace = snapshot.data ?? false;
+                                return ElevatedButton(
+                                  onPressed: hasStoredPlace
+                                    ? () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => MainPage(useStoredPlace: true),
+                                          ),
+                                        );
+                                      }
+                                    : null,
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    side: BorderSide(
+                                      color: Colors.blue,
+                                      width: 2,
+                                      strokeAlign: BorderSide.strokeAlignInside,
+                                    ),
+                                    elevation: 8,
+                                    padding: EdgeInsetsDirectional.symmetric(vertical: 8),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    disabledBackgroundColor: Colors.grey,
+                                  ),
+                                  child: Text(
+                                    'Resume',
+                                    style: TextStyle(color: Colors.blue, fontSize: 24),
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   Row(
