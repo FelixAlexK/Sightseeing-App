@@ -14,6 +14,24 @@ class Place {
     required this.date,
     required this.diff, //0 not done,1 easy, 2 hard
   });
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'description': description,
+    'imageUrl': imageUrl,
+    'cord': cord,
+    'date': date.toIso8601String(),
+    'diff': diff,
+  };
+
+  factory Place.fromJson(Map<String, dynamic> json) => Place(
+    name: json['name'],
+    description: json['description'],
+    imageUrl: json['imageUrl'],
+    cord: json['cord'],
+    date: DateTime.parse(json['date']),
+    diff: json['diff'],
+  );
 }
 
 int at = 1;

@@ -314,7 +314,7 @@ class _OptionsPageState extends State<OptionsPage> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => MainPage()))
+                                  builder: (context) => MainPage(useStoredPlace: false)))
                         },
                     style: TextButton.styleFrom(
                       backgroundColor: Colors.blue,

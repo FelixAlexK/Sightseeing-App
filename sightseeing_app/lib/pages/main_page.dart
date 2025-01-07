@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../models/place.dart';
+import 'package:sightseeing_app/models/place.dart';
 
 /// Parses a coordinate string in the format "48.8584° N, 2.2945° E".
 /// Returns a map with latitude and longitude as doubles.
@@ -33,7 +35,9 @@ Map<String, double> parseCoordinates(String cord) {
 }
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+  final bool useStoredPlace;
+
+  const MainPage({super.key, required this.useStoredPlace});
 
   @override
   _MainPageState createState() => _MainPageState();
@@ -56,9 +60,30 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    if (widget.useStoredPlace) {
+      _loadSelectedPlace().then((_) {
+        _startLocationUpdates(widget.useStoredPlace);
+      });
+    } else {
+      _startLocationUpdates(widget.useStoredPlace);
+    }
     _fetchPermissionStatus();
-    _startLocationUpdates(); // Start continuous location updates
-    _selectRandomPlace(); // Select a place once when the widget initializes
+  }
+
+
+  Future<void> _loadSelectedPlace() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? placeJson = prefs.getString('selectedPlace');
+    if (placeJson != null) {
+      setState(() {
+        _selectedPlace = Place.fromJson(jsonDecode(placeJson));
+      });
+    }
+  }
+
+  Future<void> _saveSelectedPlace(Place place) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedPlace', jsonEncode(place.toJson()));
   }
 
   @override
@@ -67,13 +92,13 @@ class _MainPageState extends State<MainPage> {
     super.dispose();
   }
 
-  void _startLocationUpdates() {
+  void _startLocationUpdates(bool useStoredPlace) {
     _positionStreamSubscription = Geolocator.getPositionStream().listen((position) {
       if (mounted) {
         setState(() {
           _userPosition = position; // Continuously update _userPosition
         });
-        if (_selectedPlace == null) _selectRandomPlace(); // Update selected place when location changes
+        if (!useStoredPlace && _selectedPlace == null) _selectRandomPlace(); // Update selected place when location changes
       }
     });
   }
@@ -113,6 +138,7 @@ class _MainPageState extends State<MainPage> {
     });
 
     print('Selected place: ${_selectedPlace?.name}');
+    _saveSelectedPlace(_selectedPlace!);
   }
 
   @override
