@@ -3,6 +3,7 @@ import 'package:sightseeing_app/pages/options_page.dart';
 import 'package:sightseeing_app/pages/history_page.dart';
 import 'package:sightseeing_app/models/place.dart';
 import 'package:sightseeing_app/pages/photo_page.dart';
+import 'package:sightseeing_app/pages/main_page.dart';
 
 class StartPage extends StatelessWidget {
   const StartPage({super.key});
@@ -88,7 +89,7 @@ class StartPage extends StatelessWidget {
                                   Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => PhotoCaptureApp(),
+                                        builder: (context) =>  MainPage(),
                                       ))
                                 },
                             style: TextButton.styleFrom(
