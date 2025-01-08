@@ -8,6 +8,8 @@ import 'package:flutter_compass/flutter_compass.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sightseeing_app/pages/place_detail_page.dart';
+
 
 import 'package:sightseeing_app/models/place.dart';
 
@@ -271,7 +273,8 @@ class _MainPageState extends State<MainPage> {
   }
 
   void _checkProximityToDestination() {
-    if (_distanceToDestination != null && _distanceToDestination! <= 100) {
+    const int destinationDistance = 5000000000;
+    if (_distanceToDestination != null && _distanceToDestination! <= destinationDistance) { //TODO: 100
       // Avoid showing the dialog repeatedly
       if (ModalRoute.of(context)?.isCurrent == true) {
         showDialog(
@@ -279,11 +282,19 @@ class _MainPageState extends State<MainPage> {
           builder: (context) {
             return AlertDialog(
               title: const Text('You\'ve arrived!'),
-              content: const Text('You are within 100 meters of your destination.'),
+              content: const Text('You are within $destinationDistance meters of your destination.'),
               actions: [
                 ElevatedButton(
                   child: const Text('Okay'),
-                  onPressed: () => Navigator.of(context).pop(),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlaceDetailPage(place: _selectedPlace!),
+                      ),
+                    );
+                  },
                 ),
               ],
             );
