@@ -65,6 +65,7 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    _loadPlacesBeen();
     if (widget.useStoredPlace) {
       _loadSelectedPlace().then((_) {
         _startLocationUpdates(widget.useStoredPlace);
