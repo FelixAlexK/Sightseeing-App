@@ -53,6 +53,8 @@ class _MainPageState extends State<MainPage> {
   Position? _userPosition;
   double? _distanceToDestination;
   Place? _selectedPlace;
+  List<Place> placesBeen = [];
+
 
   // Maximum distance in meters to consider a place as nearby
   //final int maxDistance = 1500000; //TODO: from options_page.dart
@@ -71,6 +73,13 @@ class _MainPageState extends State<MainPage> {
       _startLocationUpdates(widget.useStoredPlace);
     }
     _fetchPermissionStatus();
+  }
+
+  Future<void> _loadPlacesBeen() async {
+    List<Place> loadedPlaces = await PlacesStorage.loadPlaces();
+    setState(() {
+      placesBeen = loadedPlaces;
+    });
   }
 
 
@@ -104,6 +113,13 @@ class _MainPageState extends State<MainPage> {
         if (!useStoredPlace && _selectedPlace == null) _selectRandomPlace(); // Update selected place when location changes
       }
     });
+  }
+
+  void _addPlaceToPlacesBeen(Place place) {
+    setState(() {
+    placesBeen.add(place);
+  });
+    PlacesStorage.savePlaces(placesBeen);
   }
 
   void _selectRandomPlace() {
@@ -284,7 +300,7 @@ class _MainPageState extends State<MainPage> {
             cord: _selectedPlace!.cord,
             imageUrl: _selectedPlace!.imageUrl,
             diff: currentDiff);
-      placesBeen.add(tempPlace);
+      _addPlaceToPlacesBeen(tempPlace);
       //_selectedPlace = null;
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('selectedPlace');
@@ -398,3 +414,23 @@ class _MainPageState extends State<MainPage> {
     });
   }
 }
+
+class PlacesStorage {
+  static const String _placesKey = 'placesBeen';
+
+  static Future<void> savePlaces(List<Place> places) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> placesJson = places.map((place) => jsonEncode(place.toJson())).toList();
+    await prefs.setStringList(_placesKey, placesJson);
+  }
+
+  static Future<List<Place>> loadPlaces() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? placesJson = prefs.getStringList(_placesKey);
+    if (placesJson == null) {
+      return [];
+    }
+    return placesJson.map((placeJson) => Place.fromJson(jsonDecode(placeJson))).toList();
+  }
+}
+

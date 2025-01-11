@@ -4,14 +4,39 @@ import 'package:sightseeing_app/pages/history_page.dart';
 import 'package:sightseeing_app/models/place.dart';
 import 'package:sightseeing_app/pages/main_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 
-class StartPage extends StatelessWidget {
+class StartPage extends StatefulWidget {
   const StartPage({super.key});
+
+  @override
+  _StartPageState createState() => _StartPageState();
+
+
+}
+  
+class _StartPageState extends State<StartPage> {
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPlacesBeen();
+  }
 
   Future<bool> _hasStoredPlace() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.containsKey('selectedPlace');
+  }
+
+  Future<void> _loadPlacesBeen() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? placesJson = prefs.getStringList('placesBeen');
+    if (placesJson != null) {
+      setState(() {
+        placesBeen = placesJson.map((placeJson) => Place.fromJson(jsonDecode(placeJson))).toList();
+      });
+    }
   }
 
   @override
