@@ -166,10 +166,9 @@ class _OptionsPageState extends State<OptionsPage> {
                   child: TextField(
                     // Bind controller
                     controller: _locationController,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.done,
+                    readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: 'Enter Location',
+                      labelText: 'Location',
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.blue)),
@@ -236,7 +235,7 @@ class _OptionsPageState extends State<OptionsPage> {
                   value: sliderValue,
                   label: '${sliderValue.round().toString()} km',
                   min: 0,
-                  max: 1000,
+                  max: 100,
                   divisions: 200,
                   thumbColor: Colors.blue,
                   activeColor: Colors.lightBlue,
@@ -246,43 +245,6 @@ class _OptionsPageState extends State<OptionsPage> {
                     sliderValue = value;
                     });
                   })
-              ],
-            ),
-            Column(
-              children: [
-                CheckboxListTile(
-                  title: const Text('Option 1'),
-                  value: checkbox1,
-                  onChanged: (value) {
-                    setState(() {
-                      checkbox1 = value!;
-                    });
-                  },
-                  checkColor: Colors.white,
-                  activeColor: Colors.blue,
-                ),
-                CheckboxListTile(
-                  title: const Text('Option 2'),
-                  value: checkbox2,
-                  onChanged: (value) {
-                    setState(() {
-                      checkbox2 = value!;
-                    });
-                  },
-                  checkColor: Colors.white,
-                  activeColor: Colors.blue,
-                ),
-                CheckboxListTile(
-                  title: const Text('Option 3'),
-                  value: checkbox3,
-                  onChanged: (value) {
-                    setState(() {
-                      checkbox3 = value!;
-                    });
-                  },
-                  checkColor: Colors.white,
-                  activeColor: Colors.blue,
-                ),
               ],
             ),
             Row(
@@ -310,14 +272,18 @@ class _OptionsPageState extends State<OptionsPage> {
                       style: TextStyle(color: Colors.blue, fontSize: 16),
                     )),
                 ElevatedButton(
-                    onPressed: () => {
+                    onPressed: _locationController.text.isNotEmpty
+                      ? () {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => MainPage(useStoredPlace: false)))
-                        },
+                                  builder: (context) => MainPage(useStoredPlace: false, maxDistance: sliderValue.round() * 1000)));
+                        }
+                      : null,
                     style: TextButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: _locationController.text.isNotEmpty
+                        ? Colors.blue
+                        : Colors.grey,
                       elevation: 8,
                       padding:
                           EdgeInsets.symmetric(vertical: 8, horizontal: 16),

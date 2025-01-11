@@ -38,8 +38,9 @@ Map<String, double> parseCoordinates(String cord) {
 
 class MainPage extends StatefulWidget {
   final bool useStoredPlace;
+  final int maxDistance;
 
-  const MainPage({super.key, required this.useStoredPlace});
+  const MainPage({super.key, required this.useStoredPlace, required this.maxDistance});
 
   @override
   _MainPageState createState() => _MainPageState();
@@ -55,7 +56,7 @@ class _MainPageState extends State<MainPage> {
 
   // Maximum distance in meters to consider a place as nearby
   //final int maxDistance = 1500000; //TODO: from options_page.dart
-  final int maxDistance = 5000000000; //TODO: from options_page.dart
+  //final int maxDistance = 5000000000; //TODO: from options_page.dart
 
   StreamSubscription<Position>? _positionStreamSubscription;
 
@@ -122,11 +123,11 @@ class _MainPageState extends State<MainPage> {
         placeLat,
         placeLon,
       );
-      return distance <= maxDistance;
+      return distance <= widget.maxDistance;
     }).toList();
 
     if (nearbyPlaces.isEmpty) {
-      print('No nearby places found within ${maxDistance / 1000} km.');
+      print('No nearby places found within ${widget.maxDistance / 1000} km.');
       setState(() {
         _selectedPlace = null; // No valid place available
       });
@@ -178,7 +179,7 @@ class _MainPageState extends State<MainPage> {
 
   if (_selectedPlace == null) {
     return Center(
-      child: Text('No nearby places found within  ${maxDistance / 1000} km.'),
+      child: Text('No nearby places found within  ${widget.maxDistance / 1000} km.'),
     );
   }
 
@@ -272,10 +273,22 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  void _checkProximityToDestination() {
-    const int destinationDistance = 5000000000;
+  void  _checkProximityToDestination() async {
+    const int destinationDistance = 50;
     if (_distanceToDestination != null && _distanceToDestination! <= destinationDistance) { //TODO: 100
       // Avoid showing the dialog repeatedly
+      final tempPlace = Place(
+            name: _selectedPlace!.name,
+            description: _selectedPlace!.description,
+            date: DateTime.now(),
+            cord: _selectedPlace!.cord,
+            imageUrl: _selectedPlace!.imageUrl,
+            diff: currentDiff);
+      placesBeen.add(tempPlace);
+      //_selectedPlace = null;
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('selectedPlace');
+
       if (ModalRoute.of(context)?.isCurrent == true) {
         showDialog(
           context: context,
@@ -291,7 +304,7 @@ class _MainPageState extends State<MainPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PlaceDetailPage(place: _selectedPlace!),
+                        builder: (context) => PlaceDetailPage(place: tempPlace),
                       ),
                     );
                   },

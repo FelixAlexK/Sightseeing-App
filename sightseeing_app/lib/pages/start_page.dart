@@ -105,7 +105,7 @@ class StartPage extends StatelessWidget {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => MainPage(useStoredPlace: true),
+                                            builder: (context) => MainPage(useStoredPlace: true, maxDistance: -1),
                                           ),
                                         );
                                       }

@@ -38,25 +38,34 @@ int at = 1;
 int currentDiff = 2;
 List<Place> places = [
   Place(
-      name: "Eiffel Tower",
-      description: "An iconic symbol of Paris, France.",
+      name: "Örebro University",
+      description:
+          "An university in the middle of Sweden. Here you can study Mobile Platforms",
       date: DateTime(2024, 12, 25),
-      cord: "48.8584° N, 2.2945° E",
+      cord: "59.2543° N, 15.2484° E",
       imageUrl: "nophoto.jpg",
       diff: 0),
   Place(
-      name: "Great Wall of China",
-      description: "A historic wall spanning across northern China.",
+      name: "Örebro Casle",
+      description: "An casle in the middle of Örebro. It was oppend in 1270",
       date: DateTime(2024, 12, 25),
-      cord: "40.4319° N, 116.5704° E",
+      cord: "59.2741° N, 15.2154° E",
       imageUrl: "nophoto.jpg",
       diff: 0),
   Place(
-      name: "Taj Mahal",
-      description: "A magnificent mausoleum in India.",
+      name: "Svampen",
+      description:
+          "Watertower in örebro. Its 58 meters high and conatinas 9 million liters",
       date: DateTime(2024, 12, 25),
-      cord: "27.1751° N, 78.0421° E",
+      cord: "59.2880° N, 15.2254° E",
       imageUrl: "nophoto.jpg",
       diff: 0),
+  Place(
+      name: "Felix and Svens home",
+      description: "Home of two magnificent men",
+      date: DateTime(2024, 12, 25),
+      cord: "59.2528° N, 15.2464° E",
+      imageUrl: "nophoto.jpg",
+      diff: 0)
 ];
 List<Place> placesBeen = [];
