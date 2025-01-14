@@ -16,22 +16,22 @@ class Place {
   });
 
   Map<String, dynamic> toJson() => {
-    'name': name,
-    'description': description,
-    'imageUrl': imageUrl,
-    'cord': cord,
-    'date': date.toIso8601String(),
-    'diff': diff,
-  };
+        'name': name,
+        'description': description,
+        'imageUrl': imageUrl,
+        'cord': cord,
+        'date': date.toIso8601String(),
+        'diff': diff,
+      };
 
   factory Place.fromJson(Map<String, dynamic> json) => Place(
-    name: json['name'],
-    description: json['description'],
-    imageUrl: json['imageUrl'],
-    cord: json['cord'],
-    date: DateTime.parse(json['date']),
-    diff: json['diff'],
-  );
+        name: json['name'],
+        description: json['description'],
+        imageUrl: json['imageUrl'],
+        cord: json['cord'],
+        date: DateTime.parse(json['date']),
+        diff: json['diff'],
+      );
 }
 
 int at = 1;
@@ -43,14 +43,14 @@ List<Place> places = [
           "An university in the middle of Sweden. Here you can study Mobile Platforms",
       date: DateTime(2024, 12, 25),
       cord: "59.2543° N, 15.2484° E",
-      imageUrl: "nophoto.jpg",
+      imageUrl: "universitet.jpg",
       diff: 0),
   Place(
       name: "Örebro Casle",
       description: "An casle in the middle of Örebro. It was oppend in 1270",
       date: DateTime(2024, 12, 25),
       cord: "59.2741° N, 15.2154° E",
-      imageUrl: "nophoto.jpg",
+      imageUrl: "slott.jpg",
       diff: 0),
   Place(
       name: "Svampen",
@@ -58,7 +58,7 @@ List<Place> places = [
           "Watertower in örebro. Its 58 meters high and conatinas 9 million liters",
       date: DateTime(2024, 12, 25),
       cord: "59.2880° N, 15.2254° E",
-      imageUrl: "nophoto.jpg",
+      imageUrl: "Svampen.jpg",
       diff: 0),
   Place(
       name: "Felix and Svens home",
